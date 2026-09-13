@@ -1,5 +1,6 @@
 from rest_framework import serializers 
-from django.contrib.auth.password_validation import validate_password 
+from django.contrib.auth.password_validation import validate_password
+from rest_framework_simplejwt.serializers import TokenBlacklistSerializer  
 from .models import User 
 
 password = serializers.CharField(write_only = True)
@@ -75,3 +76,7 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
 
         validate_password(new_password, self.context["request"].user )
         return data
+
+
+    class LogoutSerializer(TokenBlacklistSerializer):
+        pass
