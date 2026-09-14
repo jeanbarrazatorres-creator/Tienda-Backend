@@ -80,3 +80,95 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
 
     class LogoutSerializer(TokenBlacklistSerializer):
         pass
+
+class UserStaffSerializer(serializers.ModelSerializer):
+
+    password = serializers.CharField(write_only=True)
+    password2 = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = User
+        fields = [
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+            "password",
+            "password2"
+        ]
+
+    def validate(self, data):
+
+        password = data.get("password")
+        password2 = data.get("password2")
+
+        if password != password2:
+            raise serializers.ValidationError(
+                "Los password no coinciden"
+            )
+
+        return data
+
+    def validate_password(self, value):
+
+        validate_password(value)
+
+        return value
+
+    def validate_username(self, value):
+
+        if len(value.strip()) < 2:
+            raise serializers.ValidationError(
+                "Debe tener más de 2 caracteres"
+            )
+
+        return value
+
+    def validate_first_name(self, value):
+
+        if len(value.strip()) < 2:
+            raise serializers.ValidationError(
+                "Debe tener más de 2 caracteres"
+            )
+
+        return value
+
+    def validate_last_name(self, value):
+
+        if len(value.strip()) < 2:
+            raise serializers.ValidationError(
+                "Debe tener más de 2 caracteres"
+            )
+
+        return value
+
+    def validate_email(self, value):
+
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError(
+                "Ese email ya existe"
+            )
+
+        return value
+
+    def create(self, validated_data):
+
+        validated_data.pop("password2")
+
+        password = validated_data.pop("password")
+
+        user = User(**validated_data)
+
+        user.set_password(password)
+
+        user.is_staff = True
+
+        user.save()
+
+        return user 
+
+class UserAdminSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "first_name", "last_name", "email", "is_active"]
+        read_only_fields = ["id", "usename"]
